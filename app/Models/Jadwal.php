@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Jadwal extends Model
+{
+    use HasFactory;
+
+    protected $table = 'jadwals';
+    protected $primaryKey = 'id_jadwal';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $fillable = ['id_jadwal', 'id_pasien', 'id_dokter', 'tanggal_konsultas'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $latest = static::latest()->first(); // Ambil data terakhir
+            $prefix = 'JDL'; // Prefix untuk menetukan isian awal
+            
+            if ($latest) {
+                $number = (int) substr($latest->id_jadwal, -5) + 1; // Tetap ambil 3 digit terakhir
+            } else {
+                $number = 1;
+            }
+
+            $model->id_jadwal = $prefix . '-' . str_pad($number, 5, '0', STR_PAD_LEFT); // Format: ABCDE-001
+        });
+    }
+ 
+    public function satuJadwalKeDokter(): BelongsTo
+    {
+        return $this->belongsTo(Dokter::class, 'id_dokter', 'id_dokter');
+    }
+
+    public function satuJadwalkePasien(): BelongsTo
+    {
+        return $this->belongsTo(Pasien::class, 'id_pasien', 'id_pasien');
+    }
+}
