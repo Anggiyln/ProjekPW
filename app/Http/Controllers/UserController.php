@@ -11,22 +11,26 @@ class UserController extends Controller
 {
     // Fungsi Register User Baru
     public function register(Request $request)
-    {
-        $data = $request->validate([
-            'name' => ['required', 'max:100'],
-            'email' => ['required', 'email', Rule::unique('users', 'email')],
-            'password' => ['required', 'min:8', 'max:20']
-        ]);
+{
+    // Validasi data input
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:100'],
+        'email' => ['required', 'email', Rule::unique('users', 'email')],
+        'password' => ['required', 'string', 'min:8', 'max:20']
+    ]);
 
-        // Enkripsi password sebelum disimpan
-        $data['password'] = bcrypt($data['password']);
+    // Enkripsi password sebelum disimpan
+    $validated['password'] = bcrypt($validated['password']);
 
-        $user = User::create($data);
-        Auth::login($user); // langsung login setelah register
+    // Simpan user ke database
+    $user = User::create($validated);
 
-        return redirect('/')->with('success', 'Registrasi berhasil dan langsung login.');
-    }
+    // Login otomatis setelah registrasi
+    Auth::login($user);
 
+    // Redirect ke halaman utama dengan pesan sukses
+    return redirect('/')->with('success', 'Registrasi berhasil dan langsung login.');
+}
     // Fungsi Login
     public function login(Request $request)
 {
@@ -60,5 +64,8 @@ class UserController extends Controller
     return $this->hasOne(Pasien::class);
 }
 
-
+public function showRegister()
+{
+    return view('auth.register'); // atau sesuai path view kamu
+}   
 }

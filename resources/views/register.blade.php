@@ -5,7 +5,7 @@
 @section('content')
 <div class="card card-outline card-primary shadow">
     <div class="card-header text-center">
-        <a href="#" class="h1"><b>Sistem</b>RS</a>
+        <a href="#" class="h1"><b>Register</b></a>
     </div>
     <div class="card-body">
         <p class="login-box-msg">Daftarkan akun Anda</p>
