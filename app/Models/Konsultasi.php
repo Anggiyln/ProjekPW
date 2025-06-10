@@ -14,33 +14,39 @@ class Konsultasi extends Model
     protected $primaryKey = 'id_konsultasi';
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $fillable = ['id_konsultasi', 'id_dokter', 'user_id', 'pertanyaan', 'jawaban'];
 
+    protected $fillable = [
+        'id_konsultasi',
+        'id_dokter',
+        'user_id',
+        'pertanyaan',
+        'jawaban',
+    ];
+
+    // Generate ID Otomatis
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            $latest = static::latest()->first(); // Ambil data terakhir
-            $prefix = 'KST'; // Prefix untuk menetukan isian awal
-            
-            if ($latest) {
-                $number = (int) substr($latest->id_konsultasi, -5) + 1; // Tetap ambil 3 digit terakhir
-            } else {
-                $number = 1;
-            }
+            $prefix = 'KST';
+            $latest = static::orderBy('id_konsultasi', 'desc')->first();
 
-            $model->id_konsultasi = $prefix . '-' . str_pad($number, 5, '0', STR_PAD_LEFT); // Format: ABCDE-001
+            $lastNumber = $latest ? (int) substr($latest->id_konsultasi, -5) : 0;
+            $newNumber = $lastNumber + 1;
+            $model->id_konsultasi = $prefix . '-' . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
         });
     }
 
-    public function satuKonsultasiKeDokter(): BelongsTo
+    // Relasi ke Dokter
+    public function dokter(): BelongsTo
     {
         return $this->belongsTo(Dokter::class, 'id_dokter', 'id_dokter');
     }
 
-    public function satuaKonsultasikePasien(): BelongsTo
+    // Relasi ke User (Pasien)
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

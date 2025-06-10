@@ -1,46 +1,57 @@
 <?php
-// Route::get/(ambilData)/('/url/', /function Atau [Controller]/)
+
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\KonsultasiController;
+use App\Http\Controllers\PasienController;
 
-Route::get('/', function () {
-    return view('layouts.app');
-});
-Route::get('/dashboard', function () {
-    return view('dashboard');
-});
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 
-
-Route::get('/pasien', [PasienController::class, 'index']);
-Route::get('/pasien/create', [PasienController::class, 'create']);
-Route::get('pasien/{pasien}/edit', [PasienController::class, 'edit'])->name('pasien.edit');
-Route::post('/pasien', [PasienController::class, 'store']);
-Route::PUT('/pasien/{id}', [PasienController::class, 'update']);
-Route::get('pasien/{id}/delete', [PasienController::class, 'deleteConfirmation'])->name('pasien.deleteConfirmation');
-Route::delete('pasien/{id}', [PasienController::class, 'destroy'])->name('pasien.destroy');
-
-// Route::resource('/pasien', \App\Http\Controllers\PasienController::class);
-Route::resource('pasien', \App\Http\Controllers\PasienController::class);
-
-// Route::middleware(['auth'])->group(function () {
-//     Route::get('/pasien', [PasienController::class, 'index']);
-//     Route::post('/pasien', [PasienController::class, 'store']);
-//     // route lain yang butuh login
-// });
-
-
-
-Route::get('/register', function () {
-    return view('register');
-});
 Route::get('/login', function () {
     return view('login');
-})->name('login');  // <-- ini penting
+})->name('login');
 
 Route::post('/login', [UserController::class, 'login']);
 
-Route::POST('/register', [UserController::class, 'register']);
-// Route::post('/logout', [UserController::class, 'logout']);
-// Route::post('/login', [UserController::class, 'login']);
-Route::post('/konsultasi', [KonsultasiController::class, 'konsultasi']);
+Route::get('/register', function () {
+    return view('register');
+})->name('register');
+
+Route::post('/register', [UserController::class, 'register']);
+
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (require login)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/', fn () => redirect('/dashboard'));
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Pasien
+    Route::resource('pasien', PasienController::class);
+
+    Route::get('pasien/{id}/delete', [PasienController::class, 'deleteConfirmation'])->name('pasien.deleteConfirmation');
+
+    // Konsultasi
+    Route::post('/konsultasi', [KonsultasiController::class, 'konsultasi']);
+
+    Route::get('/pilih-poli', [PasienController::class, 'pilihPoli'])->name('pilih.poli');
+    Route::get('/lanjut-jadwal', [KonsultasiController::class, 'jadwal'])->name('lanjut.jadwal');
+
+    // Logout
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth');

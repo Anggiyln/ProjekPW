@@ -1,70 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-    @auth
-    <p>Congrats new patient</p>
-    <form action="/loguot" method="post">
-        @csrf
-        <button>Log Out</button>
-    </form>
+@extends('layouts.guest')
 
-    <div style="border: 3px solid black">
-        <h2>Konsultasi</h2>
-        <form action="/konsultasi" method="post">
-            @csrf
-            <textarea name="pertanyaan" placeholder="Keluhan" ></textarea>
-            <textarea name="jawaban" placeholder="Solusi"></textarea>
-            <button>Simpan</button>
-        </form>
+@section('title', 'Register')
+
+@section('content')
+<div class="card card-outline card-primary shadow">
+    <div class="card-header text-center">
+        <a href="#" class="h1"><b>Sistem</b>RS</a>
     </div>
+    <div class="card-body">
+        <p class="login-box-msg">Daftarkan akun Anda</p>
 
-    @else
-    <div style="max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Registration</h2>
-    <form action="/register" method="POST">
-        @csrf
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; color: #555;">Name</label>
-            <input name="name" type="text" placeholder="Enter your name" 
-                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; color: #555;">Email</label>
-            <input name="email" type="email" placeholder="Enter your email" 
-                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; color: #555;">Password</label>
-            <input name="password" type="password" placeholder="Create a password" 
-                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-        </div>
-        
-        <button type="submit" 
-                style="width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
-            Register
-        </button>
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
 
-
-        <div style="border: 3px solid black">
-        <h2>Login</h2>
-        <form action="/login" method="post">
+        <form action="{{ url('/register') }}" method="POST">
             @csrf
-            <input name="loginEmail" type="text" placeholder="email">
-            <input name="loginPassword" type="password" placeholder="password">
-            <button>Log in</button>
+            <div class="mb-3">
+                <input name="name" type="text" class="form-control" placeholder="Nama Lengkap" required>
+            </div>
+            <div class="mb-3">
+                <input name="email" type="email" class="form-control" placeholder="Email" required>
+            </div>
+            <div class="mb-3">
+                <input name="password" type="password" class="form-control" placeholder="Password" required>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success btn-block">Register</button>
+            </div>
         </form>
-    </div>
 
-    </form>
-    @endauth
+        <p class="mt-3 text-center">
+            Sudah punya akun? <a href="{{ url('/login') }}">Login di sini</a>
+        </p>
+    </div>
 </div>
-</body>
-</html>
+@endsection

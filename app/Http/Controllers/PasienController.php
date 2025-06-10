@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pasien;
+use App\Models\Poli;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -11,10 +12,7 @@ class PasienController extends Controller
     public function index()
     {
         $pasiens = Pasien::all();
-
-        return view('pages.pasien.index', [
-            'pasiens' => $pasiens,
-        ]);
+        return view('pages.pasien.index', compact('pasiens'));
     }
 
     public function create()
@@ -22,14 +20,9 @@ class PasienController extends Controller
         return view('pages.pasien.create');
     }
 
-   public function edit(Pasien $pasien)
-{
-    return view('pages.pasien.edit', compact('pasien'));
-}
-
-    public function update(Request $request, $id)
+    public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'nama_pasien' => 'required|string|max:255',
             'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'tanggal_lahir' => 'required|date',
@@ -37,11 +30,41 @@ class PasienController extends Controller
             'alamat' => 'nullable|string',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        $user = auth()->user();
+        if (!$user) {
+            return redirect('/login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        $pasien = Pasien::findOrFail($id);
+        if ($user->pasien) {
+            return back()->with('error', 'Anda sudah terdaftar sebagai pasien');
+        }
+
+        try {
+            $user->pasien()->create($request->only([
+                'nama_pasien', 'jenis_kelamin', 'tanggal_lahir', 'no_telp', 'alamat'
+            ]));
+
+            return redirect()->route('pilih.poli')->with('success', 'Data pasien berhasil ditambahkan, silakan pilih poli.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function edit(Pasien $pasien)
+    {
+        return view('pages.pasien.edit', compact('pasien'));
+    }
+
+    public function update(Request $request, Pasien $pasien)
+    {
+        $request->validate([
+            'nama_pasien' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'tanggal_lahir' => 'required|date',
+            'no_telp' => 'required|string|max:13',
+            'alamat' => 'nullable|string',
+        ]);
+
         $pasien->update($request->only([
             'nama_pasien', 'jenis_kelamin', 'tanggal_lahir', 'no_telp', 'alamat'
         ]));
@@ -49,51 +72,26 @@ class PasienController extends Controller
         return redirect('/pasien')->with('success', 'Data pasien berhasil diperbarui');
     }
 
-    public function destroy($id)
+    public function destroy(Pasien $pasien)
     {
-        $pasien = Pasien::findOrFail($id);
         $pasien->delete();
-
         return redirect('/pasien')->with('success', 'Berhasil menghapus data');
     }
 
-    public function deleteConfirmation($id)
+    public function deleteConfirmation(Pasien $pasien)
+    {
+        return view('pages.pasien.delete', compact('pasien'));
+    }
+
+    public function pilihPoli()
+    {
+        $polis = Poli::all();
+        return view('pages.pasien.pilih_poli', compact('polis'));
+    }
+
+    public function user()
 {
-    $pasien = Pasien::findOrFail($id);
-    return view('pages.pasien.delete', compact('pasien'));
+    return $this->belongsTo(User::class);
 }
 
-
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'nama_pasien' => 'required|string|max:255',
-            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
-            'tanggal_lahir' => 'required|date',
-            'no_telp' => 'required|string|max:13',
-            'alamat' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        if (auth()->user()->pasien) {
-            return redirect()->back()->with('error', 'Anda sudah terdaftar sebagai pasien');
-        }
-
-        try {
-            auth()->user()->pasien()->create([
-                'nama_pasien' => $request->nama_pasien,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'no_telp' => $request->no_telp,
-                'alamat' => $request->alamat,
-            ]);
-
-            return redirect('/')->with('success', 'Pendaftaran pasien berhasil!');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
-        }
-    }
 }
