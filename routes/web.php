@@ -18,7 +18,6 @@ Route::get('/login', function () {
 
 Route::post('/login', [UserController::class, 'login']);
 
-Route::get('/register', [UserController::class, 'showRegister'])->name('register.form');
 
 Route::get('/register', function () {
     return view('register');

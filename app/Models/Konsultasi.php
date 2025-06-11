@@ -29,12 +29,22 @@ class Konsultasi extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $prefix = 'KST';
-            $latest = static::orderBy('id_konsultasi', 'desc')->first();
+            $prefix = 'KON';
 
-            $lastNumber = $latest ? (int) substr($latest->id_konsultasi, -5) : 0;
-            $newNumber = $lastNumber + 1;
-            $model->id_konsultasi = $prefix . '-' . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
+            // Get the highest existing number
+            $latest = static::query()
+                ->where('id_konsultasi', 'like', $prefix . '-%')
+                ->orderByRaw('LENGTH(id_konsultasi) DESC, id_konsultasi DESC')
+                ->first();
+
+            if ($latest) {
+                // Extract the numeric part
+                $number = (int) substr($latest->id_poli, strrpos($latest->id_poli, '-') + 1) + 1;
+            } else {
+                $number = 1;
+            }
+
+            $model->id_konsultasi = $prefix . '-' . str_pad($number, 5, '0', STR_PAD_LEFT);
         });
     }
 
